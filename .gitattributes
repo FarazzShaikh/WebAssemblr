@@ -1,1 +1,1 @@
-test/wasm/*.js linguist-vendored=false
+test/wasm/* linguist-vendored=true
