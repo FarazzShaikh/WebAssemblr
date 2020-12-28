@@ -1,5 +1,5 @@
 interface WebAssemblrConfig {
-  Module: any;
+  Module: Function;
   cppMode?: boolean;
 }
 
@@ -33,13 +33,13 @@ export class WebAssemblr {
 
   c_returnType: string = "";
   c_options: CallArrayOptions = CallArrayOptionsDefaults;
-  constructor(
+
+  public async init(
     { Module, cppMode }: WebAssemblrConfig,
     funcs?: string[],
     funcAlias?: string[]
   ) {
-    this.Module = Module;
-
+    this.Module = await Module();
     if (funcs) {
       this.FUNCS = {};
       funcs.forEach((f, i) => {
@@ -67,18 +67,16 @@ export class WebAssemblr {
         }
       });
     }
+
+    return this;
   }
 
-  public call() {
-    return this.FUNCS;
-  }
-
-  public returns(type: string, options: CallArrayOptions) {
+  public returns(type: string, options?: CallArrayOptions) {
     this.c_returnType = type;
     this.c_options = {
       ...options,
     };
-    return this;
+    return this.FUNCS;
   }
 
   private _call(f: string, args: any[]) {

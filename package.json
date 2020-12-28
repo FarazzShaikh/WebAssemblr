@@ -6,7 +6,7 @@
   "scripts": {
     "start": "npm run compile:tsc && node ./build/test/test.js",
     "compile": "npm run compile:tsc && cp -R ./test/wasm ./build/test",
-    "compile:wasm": "emcc --no-entry ./test/c/* ./test/cpp/* -s WASM=1 -s EXPORTED_FUNCTIONS=\"['_malloc', '_free']\" -s EXTRA_EXPORTED_RUNTIME_METHODS=\"['ccall']\" -o ./test/wasm/main.js && cp -R ./test/wasm ./build/test",
+    "compile:wasm": "emcc --no-entry ./test/c/* ./test/cpp/* -s WASM=1 -s MODULARIZE=1 -s EXPORTED_FUNCTIONS=\"['_malloc', '_free']\" -s EXTRA_EXPORTED_RUNTIME_METHODS=\"['ccall']\" -o ./test/wasm/main.js && cp -R ./test/wasm ./build/test",
     "compile:tsc": "tsc",
     "test": "jest",
     "coverage": "jest --coverage"

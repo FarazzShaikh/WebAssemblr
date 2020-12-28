@@ -1,93 +1,72 @@
 import { WebAssemblr } from "../src/WebAssemblr";
 import wasmModule from "./wasm/main";
 
+type Test = { exp: number; inp: number[] };
+
 describe("C Tests", () => {
-  test("Factorial of int", () => {
-    wasmModule.onRuntimeInitialized = function () {
-      const wasm: WebAssemblr = new WebAssemblr(
+  let wasm: WebAssemblr;
+
+  const runTest = function (tests: Test[], func: Function) {
+    for (const test of tests) {
+      const expected: number = test.exp;
+      const inp: number[] = test.inp;
+
+      const actual: number = func(...inp);
+      expect(actual).toBe(expected);
+    }
+  };
+
+  beforeAll(
+    async (): Promise<void> => {
+      wasm = await new WebAssemblr().init(
         {
           Module: wasmModule,
         },
-        ["c_fact"],
-        ["fact"]
+        ["c_fact", "c_addInt", "c_multiplyInt"],
+        ["fact", "addInt", "multInt"]
       );
+    }
+  );
 
-      const tests: { [key: number]: number } = {
-        0: 1,
-        1: 1,
-        2: 2,
-        3: 6,
-        5: 120,
-        12: 479001600,
-        15: 1307674368000,
-      };
+  test("Factorial of int", (): void => {
+    const tests: Test[] = [
+      { exp: 1, inp: [0] },
+      { exp: 1, inp: [1] },
+      { exp: 2, inp: [2] },
+      { exp: 6, inp: [3] },
+      { exp: 120, inp: [5] },
+      { exp: 479001600, inp: [12] },
+      { exp: 1307674368000, inp: [15] },
+    ];
 
-      for (const key in tests) {
-        const expected: number = Number(tests[key]);
-        const inp: number = Number(key);
-
-        const actual: number = wasm.call().fact(inp);
-        expect(actual).toBe(expected);
-      }
-    };
+    const func: Function = wasm.returns("number").fact;
+    runTest(tests, func);
   });
 
-  test("Add ints", () => {
-    wasmModule.onRuntimeInitialized = function () {
-      const wasm: WebAssemblr = new WebAssemblr(
-        {
-          Module: wasmModule,
-        },
-        ["c_addInt"],
-        ["addInt"]
-      );
+  test("Add ints", (): void => {
+    const tests: Test[] = [
+      { exp: 0, inp: [0, 0] },
+      { exp: 0, inp: [1, -1] },
+      { exp: 0, inp: [-100, 100] },
+      { exp: 1, inp: [1, 0] },
+      { exp: 1, inp: [0, 1] },
+    ];
 
-      const unittests: { exp: number; inp: number[] }[] = [
-        { exp: 0, inp: [0, 0] },
-        { exp: 0, inp: [1, -1] },
-        { exp: 0, inp: [-100, 100] },
-
-        { exp: 1, inp: [1, 0] },
-        { exp: 1, inp: [0, 1] },
-      ];
-
-      for (const test of unittests) {
-        const expected: number = test.exp;
-        const inp: number[] = test.inp;
-
-        const actual: number = wasm.call().addInt(...inp);
-        expect(actual).toBe(expected);
-      }
-    };
+    const func: Function = wasm.returns("number").addInt;
+    runTest(tests, func);
   });
 
-  test("Multiply ints", () => {
-    wasmModule.onRuntimeInitialized = function () {
-      const wasm: WebAssemblr = new WebAssemblr(
-        {
-          Module: wasmModule,
-        },
-        ["c_multiplyInt"],
-        ["multInt"]
-      );
+  test("Multiply ints", (): void => {
+    const tests: Test[] = [
+      { exp: 0, inp: [0, 0] },
+      { exp: -1, inp: [1, -1] },
+      { exp: 1, inp: [-1, -1] },
+      { exp: -10000, inp: [-100, 100] },
+      { exp: 0, inp: [1, 0] },
+      { exp: 0, inp: [0, 1] },
+    ];
 
-      const unittests: { exp: number; inp: number[] }[] = [
-        { exp: 0, inp: [0, 0] },
-        { exp: -1, inp: [1, -1] },
-        { exp: 1, inp: [-1, -1] },
-        { exp: -10000, inp: [-100, 100] },
-
-        { exp: 0, inp: [1, 0] },
-        { exp: 0, inp: [0, 1] },
-      ];
-
-      for (const test of unittests) {
-        const expected: number = test.exp;
-        const inp: number[] = test.inp;
-
-        const actual: number = wasm.call().multInt(...inp);
-        expect(actual).toBe(expected);
-      }
-    };
+    const func: Function = wasm.returns("number").multInt;
+    runTest(tests, func);
   });
 });
