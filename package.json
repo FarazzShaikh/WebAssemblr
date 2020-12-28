@@ -1,5 +1,5 @@
 {
-  "name": "WebAssemblr",
+  "name": "web-assemblr",
   "version": "1.0.0",
   "description": "A dead simple way to use WebAssembly in your script.",
   "main": "index.js",
@@ -14,6 +14,9 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/FarazzShaikh/WebAssemblr.git"
+  },
+  "bin": {
+    "WebAssemblr": "./build/bin/WebAssemblr.js"
   },
   "keywords": [],
   "author": "",
