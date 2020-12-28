@@ -21,3 +21,14 @@ EMSCRIPTEN_KEEPALIVE double cpp_fact(int i)
     return (double)n;
 }
 
+EMSCRIPTEN_KEEPALIVE int* cpp_doubleArray(int* input, int buffSize)
+{
+
+    for (int i = 0; i < buffSize; i++) {
+        input[i] *= 2;
+    }
+
+    return input;
+}
+
+

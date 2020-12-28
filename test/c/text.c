@@ -13,11 +13,17 @@ EMSCRIPTEN_KEEPALIVE int c_multiplyInt(int i, int j)
 
 EMSCRIPTEN_KEEPALIVE double c_fact(int i)
 {
-    long long n = 1;
+    double n = 1;
     for (; i > 0; i--)
     {
         n *= i;
     }
-    return (double)n;
+    return n;
+}
+
+EMSCRIPTEN_KEEPALIVE char* c_getString()
+{
+    static char str[] = "Hello, WASM!";
+    return str;
 }
 

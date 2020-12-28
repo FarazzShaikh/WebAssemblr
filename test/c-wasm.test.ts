@@ -1,15 +1,15 @@
 import { WebAssemblr } from "../src/WebAssemblr";
 import wasmModule from "./wasm/main";
 
-type Test = { exp: number; inp: number[] };
+type Test = { exp: number | string; inp: (number | string)[] };
 
 describe("C Tests", () => {
   let wasm: WebAssemblr;
 
   const runTest = function (tests: Test[], func: Function) {
     for (const test of tests) {
-      const expected: number = test.exp;
-      const inp: number[] = test.inp;
+      const expected: number | string = test.exp;
+      const inp: (number | string)[] = test.inp;
 
       const actual: number = func(...inp);
       expect(actual).toBe(expected);
@@ -22,8 +22,8 @@ describe("C Tests", () => {
         {
           Module: wasmModule,
         },
-        ["c_fact", "c_addInt", "c_multiplyInt"],
-        ["fact", "addInt", "multInt"]
+        ["c_fact", "c_addInt", "c_multiplyInt", "c_getString"],
+        ["fact", "addInt", "multInt", "getString"]
       );
     }
   );
@@ -67,6 +67,13 @@ describe("C Tests", () => {
     ];
 
     const func: Function = wasm.returns("number").multInt;
+    runTest(tests, func);
+  });
+
+  test("Get String", (): void => {
+    const tests: Test[] = [{ exp: "Hello, WASM!", inp: [] }];
+
+    const func: Function = wasm.returns("string").getString;
     runTest(tests, func);
   });
 });

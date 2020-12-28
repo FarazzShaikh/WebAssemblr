@@ -31,8 +31,8 @@ export class WebAssemblr {
   Module: any;
   FUNCS: { [name: string]: Function } = {};
 
-  c_returnType: string = "";
-  c_options: CallArrayOptions = CallArrayOptionsDefaults;
+  returnType: string = "";
+  options: CallArrayOptions = CallArrayOptionsDefaults;
 
   public async init(
     { Module, cppMode }: WebAssemblrConfig,
@@ -40,8 +40,10 @@ export class WebAssemblr {
     funcAlias?: string[]
   ) {
     this.Module = await Module();
+
     if (funcs) {
       this.FUNCS = {};
+
       funcs.forEach((f, i) => {
         let name: string = "";
 
@@ -72,8 +74,9 @@ export class WebAssemblr {
   }
 
   public returns(type: string, options?: CallArrayOptions) {
-    this.c_returnType = type;
-    this.c_options = {
+    this.returnType = type;
+    this.options = {
+      ...CallArrayOptionsDefaults,
       ...options,
     };
     return this.FUNCS;
@@ -82,10 +85,10 @@ export class WebAssemblr {
   private _call(f: string, args: any[]) {
     if (
       args.find((a) => Array.isArray(a)) ||
-      this.c_returnType === "array" ||
-      this.c_returnType === "string"
+      this.returnType === "array" ||
+      this.returnType === "string"
     ) {
-      if (!this.c_returnType) {
+      if (!this.returnType) {
         throw `Please chain WebAssemblr::returns method to specify a return type for argument type array.`;
       }
 
@@ -93,14 +96,15 @@ export class WebAssemblr {
         if (typeof param === "object") return "array";
         else return typeof param;
       });
-      //paramTypes.reduce((acc, val) => acc.concat(val), []);
+
+      const name: string = f.substr(1);
 
       return this._callArray(
-        f,
-        this.c_returnType,
+        name,
+        this.returnType,
         paramTypes,
         args,
-        this.c_options
+        this.options
       );
     }
 

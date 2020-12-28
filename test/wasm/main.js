@@ -1814,6 +1814,9 @@ var _c_multiplyInt = Module["_c_multiplyInt"] = createExportWrapper("c_multiplyI
 var _c_fact = Module["_c_fact"] = createExportWrapper("c_fact");
 
 /** @type {function(...*):?} */
+var _c_getString = Module["_c_getString"] = createExportWrapper("c_getString");
+
+/** @type {function(...*):?} */
 var __Z10cpp_addIntii = Module["__Z10cpp_addIntii"] = createExportWrapper("_Z10cpp_addIntii");
 
 /** @type {function(...*):?} */
@@ -1821,6 +1824,9 @@ var __Z15cpp_multiplyIntii = Module["__Z15cpp_multiplyIntii"] = createExportWrap
 
 /** @type {function(...*):?} */
 var __Z8cpp_facti = Module["__Z8cpp_facti"] = createExportWrapper("_Z8cpp_facti");
+
+/** @type {function(...*):?} */
+var __Z15cpp_doubleArrayPii = Module["__Z15cpp_doubleArrayPii"] = createExportWrapper("_Z15cpp_doubleArrayPii");
 
 /** @type {function(...*):?} */
 var ___errno_location = Module["___errno_location"] = createExportWrapper("__errno_location");
