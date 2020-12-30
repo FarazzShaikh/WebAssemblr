@@ -37,6 +37,7 @@ describe("C Tests", () => {
       { exp: 120, inp: [5] },
       { exp: 479001600, inp: [12] },
       { exp: 1307674368000, inp: [15] },
+      { exp: 2432902008176640000, inp: [20] },
     ];
 
     const func: Function = wasm.returns("number").fact;

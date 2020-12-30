@@ -3,7 +3,7 @@
  */
 interface WebAssemblrConfig {
   // @type Function
-  Module: Function;
+  Module: { [key: string]: unknown };
   cppMode?: boolean;
 }
 
@@ -73,7 +73,12 @@ export class WebAssemblr {
     funcAlias?: string[]
   ) {
     const { Module, cppMode } = options;
-    this.Module = await Module();
+
+    this.Module = await new Promise((resolve, reject) => {
+      Module.onRuntimeInitialized = () => {
+        resolve(Module);
+      };
+    });
 
     if (funcs) {
       this.FUNCS = {};

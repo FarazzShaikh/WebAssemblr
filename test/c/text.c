@@ -1,4 +1,5 @@
 #include <emscripten/emscripten.h>
+#include <stdint.h>
 
 EMSCRIPTEN_KEEPALIVE int c_addInt(int i, int j)
 {
