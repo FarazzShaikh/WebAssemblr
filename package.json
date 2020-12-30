@@ -2,8 +2,8 @@
   "name": "web-assemblr",
   "version": "1.0.0",
   "description": "A dead simple way to use WebAssembly in your script.",
-  "main": "lib/WebAssemblr.js",
-  "types": "lib/WebAssemblr.d.ts",
+  "main": "lib/src/WebAssemblr.js",
+  "types": "lib/src/WebAssemblr.d.ts",
   "scripts": {
     "build": "tsc",
     "build:bin": "tsc && npm i -g .",
