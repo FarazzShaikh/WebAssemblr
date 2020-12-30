@@ -1,5 +1,5 @@
 import { WebAssemblr } from "../src/WebAssemblr";
-import wasmModule from "./wasm/main";
+import wasmModule from "./wasm/wasm";
 
 type GenericTestType =
   | string

@@ -1,8 +1,29 @@
+/**
+ * Config object type
+ */
 interface WebAssemblrConfig {
+  // @type Function
   Module: Function;
   cppMode?: boolean;
 }
 
+/**
+ * WASM Heap Types
+ */
+enum TYPES {
+  int8_t = "HEAP8",
+  uint8_t = "HEAPU8",
+  int16_t = "HEAP16",
+  uint16_t = "HEAPU16",
+  int32_t = "HEAP32",
+  uint32_t = "HEAPU32",
+  float = "HEAPF32",
+  double = "HEAPF64",
+}
+
+/**
+ * WASM Heaps
+ */
 interface HeapMap {
   [key: string]: any;
   HEAP8: Int8ArrayConstructor; // int8_t
@@ -15,15 +36,21 @@ interface HeapMap {
   HEAPF64: Float64ArrayConstructor; // double
 }
 
+/**
+ * Returns "Array" options type
+ */
 interface CallArrayOptions {
   heapIn?: string;
   heapOut?: string;
   returnArraySize?: number;
 }
 
+/**
+ * Returns "Array" options defualts
+ */
 const CallArrayOptionsDefaults: CallArrayOptions = {
-  heapIn: "HEAP8",
-  heapOut: "HEAP8",
+  heapIn: TYPES.int8_t,
+  heapOut: TYPES.int8_t,
   returnArraySize: 1,
 };
 
@@ -34,11 +61,18 @@ export class WebAssemblr {
   returnType: string = "";
   options: CallArrayOptions = CallArrayOptionsDefaults;
 
+  /**
+   * Initializes an instance of WebAssemblr
+   * @param {WebAssemblrConfig} options WebAssemblr Options
+   * @param {string[]} funcs Array of exported function names
+   * @param {string[]} funcAlias Array of aliases assigned to exported functions
+   */
   public async init(
-    { Module, cppMode }: WebAssemblrConfig,
+    options: WebAssemblrConfig,
     funcs?: string[],
     funcAlias?: string[]
   ) {
+    const { Module, cppMode } = options;
     this.Module = await Module();
 
     if (funcs) {
@@ -73,6 +107,11 @@ export class WebAssemblr {
     return this;
   }
 
+  /**
+   * Sets a return type.
+   * @param {string} type Return type of subsequent function.
+   * @param {CallArrayOptions} options Options for IO buffers.
+   */
   public returns(type: string, options?: CallArrayOptions) {
     this.returnType = type;
     this.options = {
@@ -82,6 +121,12 @@ export class WebAssemblr {
     return this.FUNCS;
   }
 
+  /**
+   * Calls WASM function
+   * @param f Function name to be called
+   * @param args Function arguments
+   * @private
+   */
   private _call(f: string, args: any[]) {
     if (
       args.find((a) => Array.isArray(a)) ||
@@ -112,6 +157,15 @@ export class WebAssemblr {
     return func(...args);
   }
 
+  /**
+   * Calls WASM function. Adapted from {@link https://becominghuman.ai/passing-and-returning-webassembly-array-parameters-a0f572c65d97|Dan Ruta on Medium}
+   * @param func Function name to be called
+   * @param returnType Return time
+   * @param paramTypes Types of parameters
+   * @param params Function arguments
+   * @param options Options for IO buffers.
+   * @private
+   */
   private _callArray = (
     func: string,
     returnType: string,
