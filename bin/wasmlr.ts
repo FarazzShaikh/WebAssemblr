@@ -30,7 +30,7 @@ if (argv.input) {
   const input = argv.input.join(" ");
   const output = argv.output ? `${argv.output}/wasm.js` : "./wasm.js";
 
-  const command: string = `emcc --no-entry ${input} -s WASM=1 -s EXPORTED_FUNCTIONS=\"['_malloc', '_free']\" -s EXTRA_EXPORTED_RUNTIME_METHODS=\"['ccall']\" -o ${output}`;
+  const command: string = `emcc -O2 --no-entry ${input} -s WASM=1 -s EXPORTED_FUNCTIONS=\"['_malloc', '_free']\" -s EXTRA_EXPORTED_RUNTIME_METHODS=\"['ccall']\" -o ${output}`;
   execCommand(command);
 } else {
   console.log(

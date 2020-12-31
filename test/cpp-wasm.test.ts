@@ -22,7 +22,6 @@ describe("C++ Tests", () => {
       const inp: GenericTestType[] = test.inp;
 
       const actual: number = func(...inp);
-
       if (Array.isArray(expected)) {
         expect(actual).toStrictEqual(expected);
         continue;
@@ -34,14 +33,17 @@ describe("C++ Tests", () => {
 
   beforeAll(
     async (): Promise<void> => {
-      wasm = await new WebAssemblr().init(
-        {
-          Module: wasmModule,
-          cppMode: true,
-        },
-        ["cpp_fact", "cpp_addInt", "cpp_multiplyInt", "cpp_doubleArray"],
-        ["fact", "addInt", "multInt", "doubleArray"]
-      );
+      wasm = await new WebAssemblr().init({
+        Module: wasmModule,
+        funcs: [
+          "cpp_fact",
+          "cpp_addInt",
+          "cpp_multiplyInt",
+          "cpp_doubleArray",
+          "doubl_2D",
+        ],
+        funcAlias: ["fact", "addInt", "multInt", "doubleArray", "doubl_2D"],
+      });
     }
   );
 
@@ -87,7 +89,7 @@ describe("C++ Tests", () => {
     runTest(tests, func);
   });
 
-  test("Multiply ints", (): void => {
+  test("Double ints", (): void => {
     const tests: Test<number[], number[]>[] = [
       { exp: [0, 0], inp: [[0, 0]] },
       { exp: [2, 4], inp: [[1, 2]] },

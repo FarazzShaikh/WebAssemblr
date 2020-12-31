@@ -4,7 +4,8 @@
 interface WebAssemblrConfig {
   // @type Function
   Module: { [key: string]: unknown };
-  cppMode?: boolean;
+  funcs?: string[];
+  funcAlias?: string[];
 }
 
 /**
@@ -40,6 +41,7 @@ interface HeapMap {
  * Returns "Array" options type
  */
 interface CallArrayOptions {
+  [key: string]: unknown;
   heapIn?: string;
   heapOut?: string;
   returnArraySize?: number;
@@ -55,24 +57,35 @@ const CallArrayOptionsDefaults: CallArrayOptions = {
 };
 
 export class WebAssemblr {
-  Module: any;
-  FUNCS: { [name: string]: Function } = {};
+  private Module: any;
+  private FUNCS: { [name: string]: Function } = {};
+  private heapMap: HeapMap;
+  private returnType: string = "";
+  private options: CallArrayOptions = CallArrayOptionsDefaults;
 
-  returnType: string = "";
-  options: CallArrayOptions = CallArrayOptionsDefaults;
+  constructor() {
+    this.heapMap = {
+      HEAP8: Int8Array, // int8_t
+      HEAPU8: Uint8Array, // uint8_t
+      HEAP16: Int16Array, // int16_t
+      HEAPU16: Uint16Array, // uint16_t
+      HEAP32: Int32Array, // int32_t
+      HEAPU32: Uint32Array, // uint32_t
+      HEAPF32: Float32Array, // float
+      HEAPF64: Float64Array, // double
+    };
+  }
 
   /**
    * Initializes an instance of WebAssemblr
    * @param {WebAssemblrConfig} options WebAssemblr Options
    * @param {string[]} funcs Array of exported function names
    * @param {string[]} funcAlias Array of aliases assigned to exported functions
+   *
+   * @returns {WebAssemblr} An instance of `WebAssemblr`
    */
-  public async init(
-    options: WebAssemblrConfig,
-    funcs?: string[],
-    funcAlias?: string[]
-  ) {
-    const { Module, cppMode } = options;
+  public async init(options: WebAssemblrConfig): Promise<WebAssemblr> {
+    const { Module, funcs, funcAlias } = options;
 
     this.Module = await new Promise((resolve, reject) => {
       Module.onRuntimeInitialized = () => {
@@ -83,30 +96,20 @@ export class WebAssemblr {
     if (funcs) {
       this.FUNCS = {};
 
-      funcs.forEach((f, i) => {
-        let name: string = "";
-
-        if (cppMode) {
-          Object.keys(this.Module).forEach((k) => {
-            if (k.includes(f) && k.startsWith("__Z")) name = k;
-          });
-        } else {
-          name = "_" + f;
-        }
-
-        const func: Function = this.Module[`${name}`];
+      for (let i = 0; i < funcs.length; i++) {
+        const f = funcs[i];
 
         let nameAlias: string = f;
         if (funcAlias) {
           nameAlias = funcAlias[i];
         }
 
-        if (func) {
-          this.FUNCS[nameAlias] = (...args: any[]) => this._call(name, args);
+        if (this.Module["_" + f]) {
+          this.FUNCS[nameAlias] = (...args: any[]) => this._callArray(f, args);
         } else {
-          throw `No such function - ${name} found for index ${name}`;
+          throw `No such function - ${f} found for index ${f}`;
         }
-      });
+      }
     }
 
     return this;
@@ -116,50 +119,20 @@ export class WebAssemblr {
    * Sets a return type.
    * @param {string} type Return type of subsequent function.
    * @param {CallArrayOptions} options Options for IO buffers.
+   *
+   * @returns An `object` with Exported Fucntions
    */
-  public returns(type: string, options?: CallArrayOptions) {
+  public returns(
+    type: string,
+    options?: CallArrayOptions
+  ): { [name: string]: Function } {
     this.returnType = type;
-    this.options = {
-      ...CallArrayOptionsDefaults,
-      ...options,
-    };
-    return this.FUNCS;
-  }
-
-  /**
-   * Calls WASM function
-   * @param f Function name to be called
-   * @param args Function arguments
-   * @private
-   */
-  private _call(f: string, args: any[]) {
-    if (
-      args.find((a) => Array.isArray(a)) ||
-      this.returnType === "array" ||
-      this.returnType === "string"
-    ) {
-      if (!this.returnType) {
-        throw `Please chain WebAssemblr::returns method to specify a return type for argument type array.`;
+    if (options) {
+      for (const key in this.options) {
+        this.options[key] = options[key] || CallArrayOptionsDefaults[key];
       }
-
-      const paramTypes: string[] = args.map((param) => {
-        if (typeof param === "object") return "array";
-        else return typeof param;
-      });
-
-      const name: string = f.substr(1);
-
-      return this._callArray(
-        name,
-        this.returnType,
-        paramTypes,
-        args,
-        this.options
-      );
     }
-
-    const func: Function = this.Module[`${f}`];
-    return func(...args);
+    return this.FUNCS;
   }
 
   /**
@@ -171,27 +144,23 @@ export class WebAssemblr {
    * @param options Options for IO buffers.
    * @private
    */
-  private _callArray = (
-    func: string,
-    returnType: string,
-    paramTypes: Array<string> = [],
-    params: any[],
-    options: CallArrayOptions
-  ) => {
-    const { heapIn, heapOut, returnArraySize }: CallArrayOptions = options;
+  private _callArray = (f: string, args: any[]) => {
+    if (!this.returnType) {
+      throw `Please chain WebAssemblr::returns method to specify a return type.`;
+    }
+    let paramTypes: string[] = [];
+    for (const arg of args) {
+      if (Array.isArray(arg)) paramTypes.push("array");
+      else paramTypes.push(typeof arg);
+    }
+
+    const returnType = this.returnType;
+    const params = args;
+    const func = f;
+
+    const { heapIn, heapOut, returnArraySize }: CallArrayOptions = this.options;
 
     if (heapIn && heapOut && returnArraySize) {
-      const heapMap: HeapMap = {
-        HEAP8: Int8Array, // int8_t
-        HEAPU8: Uint8Array, // uint8_t
-        HEAP16: Int16Array, // int16_t
-        HEAPU16: Uint16Array, // uint16_t
-        HEAP32: Int32Array, // int32_t
-        HEAPU32: Uint32Array, // uint32_t
-        HEAPF32: Float32Array, // float
-        HEAPF64: Float64Array, // double
-      };
-
       let res: number;
       const returnTypeParam: string =
         returnType == "array" ? "number" : returnType;
@@ -203,7 +172,7 @@ export class WebAssemblr {
         if (params) {
           for (let p = 0; p < params.length; p++) {
             if (paramTypes[p] == "array" || typeof params[p] === "object") {
-              const typedArray = new heapMap[heapIn](params[p].length);
+              const typedArray = new this.heapMap[heapIn](params[p].length);
 
               for (let i = 0; i < params[p].length; i++) {
                 typedArray[i] = params[p][i];
@@ -265,7 +234,9 @@ export class WebAssemblr {
 
         for (let v = 0; v < returnArraySize; v++) {
           returnData.push(
-            this.Module[heapOut][res / heapMap[heapOut].BYTES_PER_ELEMENT + v]
+            this.Module[heapOut][
+              res / this.heapMap[heapOut].BYTES_PER_ELEMENT + v
+            ]
           );
         }
 

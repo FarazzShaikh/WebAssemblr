@@ -18,13 +18,11 @@ describe("C Tests", () => {
 
   beforeAll(
     async (): Promise<void> => {
-      wasm = await new WebAssemblr().init(
-        {
-          Module: wasmModule,
-        },
-        ["c_fact", "c_addInt", "c_multiplyInt", "c_getString"],
-        ["fact", "addInt", "multInt", "getString"]
-      );
+      wasm = await new WebAssemblr().init({
+        Module: wasmModule,
+        funcs: ["c_fact", "c_addInt", "c_multiplyInt", "c_getString"],
+        funcAlias: ["fact", "addInt", "multInt", "getString"],
+      });
     }
   );
 
