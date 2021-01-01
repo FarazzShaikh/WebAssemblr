@@ -2,28 +2,29 @@
   "name": "web-assemblr",
   "version": "1.0.1",
   "description": "A dead simple way to use WebAssembly in your script.",
-  "main": "lib/src/WebAssemblr.js",
-  "types": "lib/src/WebAssemblr.d.ts",
+  "main": "lib/node/src/WebAssemblr.js",
+  "types": "lib/node/src/WebAssemblr.d.ts",
   "scripts": {
-    "build": "tsc",
+    "start": "tsc -p tsconfig-node.json && node ./lib/node/src/WebAssemblr.js",
+    "build": "tsc -p tsconfig-node.json && tsc -p tsconfig-web.json",
     "build:bin": "tsc && npm i -g .",
     "test": "jest",
     "preversion": "npm test",
     "prepublishOnly": "npm test",
     "prepare": "npm run build",
     "version": "git add .",
-    "postversion": "git push && git push --tags"
+    "postversion": "git push && git push --tags",
+    "compile": "emcc -O2 --no-entry ./test/c/* ./test/cpp/* -s WASM=1 -s EXPORTED_FUNCTIONS=\"['_malloc', '_free']\" -s EXTRA_EXPORTED_RUNTIME_METHODS=\"['ccall']\" -o ./test/wasm/wasm.js"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/FarazzShaikh/WebAssemblr.git"
   },
   "bin": {
-    "wasmlr": "./lib/bin/wasmlr.js"
+    "wasmlr": "./lib/node/bin/wasmlr.js"
   },
   "files": [
-    "lib/*",
-    "bin/*"
+    "lib/node/*"
   ],
   "keywords": [
     "Typescript",
@@ -40,6 +41,7 @@
   "homepage": "https://github.com/FarazzShaikh/WebAssemblr#readme",
   "devDependencies": {
     "@types/jest": "^26.0.19",
+    "@types/node": "^14.14.17",
     "@types/yargs": "^15.0.12",
     "jest": "^26.6.3",
     "ts-jest": "^26.4.4",
