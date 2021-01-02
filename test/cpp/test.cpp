@@ -1,4 +1,5 @@
 #include <emscripten/emscripten.h>
+#include <stdint.h>
 
 extern "C" {
     EMSCRIPTEN_KEEPALIVE int cpp_addInt(int i, int j)
@@ -22,7 +23,7 @@ extern "C" {
         return (double)n;
     }
 
-    EMSCRIPTEN_KEEPALIVE int* cpp_doubleArray(int* input, int buffSize)
+    EMSCRIPTEN_KEEPALIVE float* cpp_doubleArray(float* input, int buffSize)
     {
 
         for (int i = 0; i < buffSize; i++) {
