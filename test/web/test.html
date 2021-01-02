@@ -15,9 +15,9 @@
         console.log(
           w
             .returns("number")
-
+            .andTakes(TYPES.int32_t)
             .call()
-            .sumArray([1, 2, 3, 6, 75])
+            .sumArray([1, 2, 3, 64, 75])
         );
       })();
     </script>

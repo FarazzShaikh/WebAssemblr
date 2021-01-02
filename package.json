@@ -5,8 +5,8 @@
   "main": "lib/node/src/WebAssemblr.js",
   "types": "lib/node/src/WebAssemblr.d.ts",
   "scripts": {
-    "start": "tsc -p tsconfig-node.json && node ./lib/node/src/WebAssemblr.js",
-    "build": "tsc -p tsconfig-node.json && tsc -p tsconfig-web.json",
+    "start": "tsc && node ./lib/node/src/WebAssemblr.js",
+    "build": "tsc && tsc -p tsconfig-web.json",
     "build:bin": "tsc && npm i -g .",
     "test": "jest",
     "preversion": "npm test",
