@@ -27,7 +27,7 @@ const WASM_CONFIG: t_genericObj_object = {
   },
 };
 
-enum TYPES {
+export enum TYPES {
   int8_t = "HEAP8",
   uint8_t = "HEAPU8",
   int16_t = "HEAP16",
@@ -95,11 +95,7 @@ export class WASMlr {
     let wasmBytes: BufferSource;
 
     if (ENV_NDOE) {
-      fs = require("fs");
-      path = require("path");
-
-      const wasmPath: string = path.resolve(__dirname, filepath);
-      wasmBytes = fs.readFileSync(wasmPath);
+      wasmBytes = require("fs").readFileSync(filepath);
     } else {
       const wasmFile = await fetch(filepath);
       wasmBytes = await wasmFile.arrayBuffer();
@@ -171,12 +167,14 @@ export class WASMlr {
     if (name && args) {
       return this.functions[name](...args);
     }
-
+    const top = this.stack_returnTypes[this.stack_returnTypes.length - 1];
+    if (!top)
+      throw "Please specify a return type for function you want to call";
     return this.functions;
   }
 
   private _call(f: Function, args: any[]) {
-    const top: i_returnType | undefined = this.stack_returnTypes.pop();
+    let top: i_returnType | undefined = this.stack_returnTypes.pop();
 
     if (top) {
       const retType: string = top.r_type;
@@ -208,7 +206,7 @@ export class WASMlr {
               switch (p_heapType) {
                 case TYPES.int8_t:
                 case TYPES.uint8_t:
-                  mem.set(typedArgs, ptr >> 1);
+                  mem.set(typedArgs, ptr);
                 case TYPES.int16_t:
                 case TYPES.uint16_t:
                   mem.set(typedArgs, ptr >> 1);
@@ -246,9 +244,9 @@ export class WASMlr {
         return this._decodeArray(heapType, ptr, retLen);
       }
 
-      return f(...args);
+      return f(...params);
     } else {
-      throw "Return Type not defiled";
+      throw "Return Type not defined";
     }
   }
 
@@ -271,17 +269,3 @@ export class WASMlr {
     return str;
   }
 }
-
-(async function () {
-  const w = await new WASMlr().init("../../../test/wasm/wasm.wasm");
-  const inp = [-4.5, 5.1, +6.9];
-  console.log(
-    w
-      .returns("array")
-      .ofLength(inp.length)
-      .ofType(TYPES.float)
-      .andTakes(TYPES.float)
-      .call()
-      .cpp_doubleArray(inp)
-  );
-})();

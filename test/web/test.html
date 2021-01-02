@@ -7,7 +7,19 @@
   </head>
   <body>
     <script type="module">
-      import { WASMlr } from "../../lib/web/src/WebAssemblr.js";
+      import { WASMlr, TYPES } from "../../lib/web/src/WebAssemblr.js";
+
+      (async function () {
+        const w = await new WASMlr().init("../../../test/wasm/wasm.wasm");
+
+        console.log(
+          w
+            .returns("number")
+
+            .call()
+            .sumArray([1, 2, 3, 6, 75])
+        );
+      })();
     </script>
   </body>
 </html>

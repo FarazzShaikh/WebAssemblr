@@ -1,5 +1,4 @@
-import { WebAssemblr } from "../src/WebAssemblr";
-import wasmModule from "./wasm/wasm";
+import { WASMlr, TYPES } from "../src/WebAssemblr";
 
 type GenericTestType =
   | string
@@ -11,7 +10,7 @@ type GenericTestType =
 type Test<E, I> = { exp: E; inp: I[] };
 
 describe("C++ Tests", () => {
-  let wasm: WebAssemblr;
+  let wasm: WASMlr;
 
   const runTest = function (
     tests: Test<GenericTestType, GenericTestType>[],
@@ -21,7 +20,7 @@ describe("C++ Tests", () => {
       const expected: GenericTestType = test.exp;
       const inp: GenericTestType[] = test.inp;
 
-      const actual: number = func(...inp);
+      const actual: number = func()(...inp);
       if (Array.isArray(expected)) {
         expect(actual).toStrictEqual(expected);
         continue;
@@ -33,17 +32,9 @@ describe("C++ Tests", () => {
 
   beforeAll(
     async (): Promise<void> => {
-      wasm = await new WebAssemblr().init({
-        Module: wasmModule,
-        funcs: [
-          "cpp_fact",
-          "cpp_addInt",
-          "cpp_multiplyInt",
-          "cpp_doubleArray",
-          "doubl_2D",
-        ],
-        funcAlias: ["fact", "addInt", "multInt", "doubleArray", "doubl_2D"],
-      });
+      const path = require("path");
+      const wasmPath: string = path.resolve(__dirname, "./wasm/wasm.wasm");
+      wasm = await new WASMlr().init(wasmPath);
     }
   );
 
@@ -58,7 +49,7 @@ describe("C++ Tests", () => {
       { exp: 1307674368000, inp: [15] },
     ];
 
-    const func: Function = wasm.returns("number").fact;
+    const func: Function = () => wasm.returns("number").call().factorial;
     runTest(tests, func);
   });
 
@@ -71,7 +62,7 @@ describe("C++ Tests", () => {
       { exp: 1, inp: [0, 1] },
     ];
 
-    const func: Function = wasm.returns("number").addInt;
+    const func: Function = () => wasm.returns("number").call().addInt;
     runTest(tests, func);
   });
 
@@ -85,7 +76,7 @@ describe("C++ Tests", () => {
       { exp: 0, inp: [0, 1] },
     ];
 
-    const func: Function = wasm.returns("number").multInt;
+    const func: Function = () => wasm.returns("number").call().multiplyInt;
     runTest(tests, func);
   });
 
@@ -97,9 +88,20 @@ describe("C++ Tests", () => {
 
     let out_bufferLength: number = 2;
 
-    const func: Function = wasm.returns("array", {
-      returnArraySize: out_bufferLength,
-    }).doubleArray;
+    const func: Function = () =>
+      wasm.returns("array").ofLength(out_bufferLength).call().doubleArray;
+    runTest(tests, func);
+  });
+
+  test("Sum Array", (): void => {
+    const tests: Test<number, number[]>[] = [
+      { exp: 0, inp: [[0, 0]] },
+      { exp: 3, inp: [[1, 2]] },
+      { exp: 145, inp: [[1, 2, 3, 64, 75]] },
+    ];
+
+    const func: Function = () =>
+      wasm.returns("number").andTakes(TYPES.int32_t).call().sumArray;
     runTest(tests, func);
   });
 });
