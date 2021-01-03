@@ -13,11 +13,10 @@
         const w = await new WASMlr().init("../../../test/wasm/wasm.wasm");
 
         console.log(
-          w
-            .returns("number")
-            .andTakes(TYPES.int32_t)
-            .call()
-            .sumArray([1, 2, 3, 64, 75])
+          w.returns("number").call().addInt_object({
+            a: 1,
+            b: 9,
+          })
         );
       })();
     </script>

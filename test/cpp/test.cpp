@@ -1,10 +1,32 @@
 #include <emscripten/emscripten.h>
 #include <stdint.h>
+#include "../../lib/msgpack-c/include/msgpack.hpp"
+
+
+struct Expression {
+public:
+    MSGPACK_DEFINE_MAP(a, b);
+    int a;
+    int b;
+};
 
 extern "C" {
     EMSCRIPTEN_KEEPALIVE int addInt(int i, int j)
     {
         return i + j;
+    }
+
+    EMSCRIPTEN_KEEPALIVE int addInt_object(char* ptr, int size)
+    {
+
+        msgpack::object_handle oh = msgpack::unpack(ptr, size);
+        msgpack::object obj = oh.get();
+
+        Expression expression;
+        obj.convert(expression);
+
+        return expression.a + expression.b;
+        return 0;
     }
 
     EMSCRIPTEN_KEEPALIVE int multiplyInt(int i, int j)
@@ -61,19 +83,19 @@ extern "C" {
 
     EMSCRIPTEN_KEEPALIVE int modularExponentiation(int x, uint32_t y, int q)
     {
-        if(x == 0)
+        if (x == 0)
             return 0;
         int answer = 1;
-        x = x%q;
-        while(y > 0)
+        x = x % q;
+        while (y > 0)
         {
-            if(y & 1)
-                answer = (answer*x)%q;
+            if (y & 1)
+                answer = (answer * x) % q;
             y = y >> 1;
-            x = (x*x)%q;
+            x = (x * x) % q;
         }
         return answer;
-        
+
     }
 
 

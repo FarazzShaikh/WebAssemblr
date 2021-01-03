@@ -5,7 +5,7 @@
   "compilerOptions": {
     "target": "ESNext",                          
     "module": "ESNext",         
-    "outDir": "./lib/web/src",                      
+    "outDir": "./lib/web/",                      
     "lib": [ "es2015", "dom" ],
   },
 }

@@ -1,12 +1,7 @@
 import { WASMlr, TYPES } from "../src/WebAssemblr";
 
-type GenericTestType =
-  | string
-  | number
-  | boolean
-  | string[]
-  | number[]
-  | boolean[];
+type GenericTestType = any;
+
 type Test<E, I> = { exp: E; inp: I[] };
 
 describe("C++ Tests", () => {
@@ -114,7 +109,25 @@ describe("C++ Tests", () => {
       { exp: 49, inp: [1234, 1000, 69] },
     ];
 
-    const func: Function = () => wasm.returns("number").call().modularExponentiation;
+    const func: Function = () =>
+      wasm.returns("number").call().modularExponentiation;
+    runTest(tests, func);
+  });
+
+  test("Sum ints from object", (): void => {
+    interface input {
+      a: number;
+      b: number;
+    }
+    const tests: Test<number, input>[] = [
+      { exp: 0, inp: [{ a: 0, b: 0 }] },
+      { exp: 0, inp: [{ a: 1, b: -1 }] },
+      { exp: 0, inp: [{ a: -100, b: 100 }] },
+      { exp: 1, inp: [{ a: 1, b: 0 }] },
+      { exp: 1, inp: [{ a: 0, b: 1 }] },
+    ];
+
+    const func: Function = () => wasm.returns("number").call().addInt_object;
     runTest(tests, func);
   });
 });

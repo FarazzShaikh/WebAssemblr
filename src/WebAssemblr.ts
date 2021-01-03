@@ -1,3 +1,5 @@
+import * as msgPack from "../utils/msgPack/index";
+
 type t_genericObj_functions = { [key: string]: Function };
 type t_genericObj_object = { [key: string]: {} };
 
@@ -24,6 +26,9 @@ const WASM_CONFIG: t_genericObj_object = {
   },
   wasi_snapshot_preview1: {
     proc_exit: function () {},
+    fd_close: function () {},
+    fd_write: function () {},
+    fd_seek: function () {},
   },
 };
 
@@ -231,6 +236,17 @@ export class WASMlr {
               this.free(ptr);
             }
           }
+        } else if (typeof arg === "object") {
+          const packed = msgPack.encode(arg);
+          var ptr = this.malloc(packed.length);
+          var bytes_per_element = packed.BYTES_PER_ELEMENT;
+          this.memmoryBuffers[TYPES.int8_t].set(
+            packed,
+            ptr / bytes_per_element
+          );
+
+          params.push(ptr);
+          params.push(packed.length);
         } else if (typeof arg === "number") {
           params.push(arg);
         }
