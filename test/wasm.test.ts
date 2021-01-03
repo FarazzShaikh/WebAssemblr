@@ -104,4 +104,17 @@ describe("C++ Tests", () => {
       wasm.returns("number").andTakes(TYPES.int32_t).call().sumArray;
     runTest(tests, func);
   });
+
+  test("Modular Exponentiation", (): void => {
+    const tests: Test<number, number>[] = [
+      { exp: 0, inp: [0, 1000, 100] },
+      { exp: 3, inp: [2, 3, 5] },
+      { exp: 6, inp: [2, 5, 13] },
+      { exp: 12, inp: [7, 150, 13] },
+      { exp: 49, inp: [1234, 1000, 69] },
+    ];
+
+    const func: Function = () => wasm.returns("number").call().modularExponentiation;
+    runTest(tests, func);
+  });
 });

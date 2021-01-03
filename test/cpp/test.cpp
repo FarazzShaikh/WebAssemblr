@@ -59,4 +59,22 @@ extern "C" {
         return output;
     }
 
+    EMSCRIPTEN_KEEPALIVE int modularExponentiation(int x, uint32_t y, int q)
+    {
+        if(x == 0)
+            return 0;
+        int answer = 1;
+        x = x%q;
+        while(y > 0)
+        {
+            if(y & 1)
+                answer = (answer*x)%q;
+            y = y >> 1;
+            x = (x*x)%q;
+        }
+        return answer;
+        
+    }
+
+
 }
