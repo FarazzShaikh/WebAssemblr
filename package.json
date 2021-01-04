@@ -5,8 +5,9 @@
   "main": "lib/node/src/WebAssemblr.js",
   "types": "lib/node/src/WebAssemblr.d.ts",
   "scripts": {
+    "postinstall": "git clone --single-branch --branch cpp_master https://github.com/msgpack/msgpack-c.git ./lib/msgpack-c",
     "start": "tsc && node ./lib/node/src/WebAssemblr.js",
-    "build": "tsc && tsc -p tsconfig-web.json && node ./utils/append-js.js",
+    "build": "tsc && tsc -p tsconfig-web.json && node ./utils/append-js.js && jest",
     "build:bin": "tsc && npm i -g .",
     "test": "jest",
     "preversion": "npm test",
