@@ -1,59 +1,93 @@
 #!/usr/bin/env node
 
-import yargs, { Argv, exit, Options } from "yargs";
-import { exec } from "child_process";
 import path from "path";
+import { exec, ExecException } from "child_process";
+import { Print } from "./utils";
+import { exit } from "process";
 
-type Argv_Type = {
-  [x: string]: unknown;
-  input: (string | number)[] | undefined;
-  output: string | undefined;
-  _: (string | number)[];
-  $0: string;
-};
+(async function () {
+	console.clear();
+	const args: string[] = process.argv.slice(2);
 
-const argv: Argv_Type = yargs
-  .option("input", {
-    description: "Path of input C/C++ files.",
-    alias: "i",
-    type: "array",
-  })
-  .option("output", {
-    description: "Path of resulting WASM and preamble.js file",
-    alias: "o",
-    type: "string",
-  })
-  .help()
-  .alias("help", "h").argv;
+	const argMap: Record<string, string[]> = {
+		i: [],
+		o: [],
+		e: [],
+		f: [],
+		z: [],
 
-if (argv.input) {
-  const input = argv.input.join(" ");
-  const output = argv.output ? `${argv.output}/wasm.js` : "./wasm.js";
+		h: [],
+		v: [],
+	};
 
-  const command: string = `emcc -O2 --no-entry ${input} -s WASM=1 -s EXPORTED_FUNCTIONS=\"['_malloc', '_free']\" -s EXTRA_EXPORTED_RUNTIME_METHODS=\"['ccall']\" -o ${output}`;
-  execCommand(command);
-} else {
-  console.log(
-    "Please provide path to C/C++ files to be compiled. Run -h for help."
-  );
-}
+	let key = "";
+	for (const arg of args) {
+		if (arg.startsWith("-") && !arg.startsWith("--")) {
+			const option = arg.split("-")[1];
+			if (!(option in argMap)) {
+				Print.error(`Unknown argument "${arg}"`);
+				Print.help();
+				exit(0);
+			} else {
+				key = option;
+			}
+		}
 
-function execCommand(command: string) {
-  exec("emcc --version", (error, stdout, stderr) => {
-    if (error !== null) {
-      console.log(
-        "There Seems to be an issue with your instalations of Emscripten."
-      );
-      console.log(
-        'Make sure you have the latest verison of Emscripten installed, or "emcc" exported in $PATH '
-      );
-    } else {
-      exec(command, (error, stdout, stderr) => {
-        console.log(stdout);
-        if (error !== null) {
-          console.log("exec error: " + error);
-        }
-      });
-    }
-  });
-}
+		if (key === "h") {
+			Print.title();
+			Print.help();
+			exit(0);
+		}
+
+		if (key === "v") {
+			Print.title();
+			Print.version();
+			exit(0);
+		}
+
+		if (arg.split("-")[1] !== key) argMap[key].push(arg);
+	}
+
+	if (argMap.i.length <= 0 || argMap.o.length <= 0) {
+		Print.error(`Please provide required arguments`);
+		Print.help();
+		exit(0);
+	}
+
+	let emccOpts = "";
+	argMap.e.forEach((o, i) => {
+		if (i > 0 && i < argMap.e.length) emccOpts += " -s " + o;
+		else emccOpts += o;
+	});
+	const filename = path.normalize(argMap.o[0].includes(".wasm") ? argMap.o[0] : `${argMap.o[0]}/wasm.wasm`);
+
+	const command = `emcc \
+    -${argMap.z[0] || "Os"} \
+    ${argMap.i.join(" ")} \
+    -s WASM=1 \
+    -s EXPORTED_FUNCTIONS=\"['_malloc', '_free']\" \
+    -I./lib/msgpack-c/include \
+    -o ${filename} \
+    ${argMap.f.join(" ")} \
+    ${emccOpts ? "-s " + emccOpts : ""}`.replace(/  +/g, " ");
+
+	execCommand(command);
+
+	function execCommand(command: string) {
+		exec("emcc --version", (error, stdout, stderr) => {
+			if (error !== null) {
+				Print.error("There Seems to be an issue with your instalations of Emscripten.");
+				Print.error('Make sure you have the latest verison of Emscripten installed, or "emcc" exported in $PATH ');
+			} else {
+				Print.success(`Generating...`);
+				exec(command, (error: ExecException | null) => {
+					if (error !== null) {
+						Print.error("exec error: " + error);
+					} else {
+						Print.success(`WASM Generated - ${filename}`);
+					}
+				});
+			}
+		});
+	}
+})();
