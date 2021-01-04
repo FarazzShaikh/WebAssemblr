@@ -238,8 +238,19 @@ export class WASMlr {
       } else if (retType === "array") {
         const ptr = f(...params);
         return this._decodeArray(heapType, ptr, retLen);
-      }
+      } else if (retType === "object") {
+        const addressPtr = f(...params);
 
+        const addressData = new Uint8Array(
+          this.memmoryBuffers[heapType].slice(
+            addressPtr,
+            addressPtr + (addressPtr >> 2)
+          )
+        );
+
+        this.free(addressPtr);
+        return msgPack.decode(addressData);
+      }
       return f(...params);
     } else {
       throw "Return Type not defined";

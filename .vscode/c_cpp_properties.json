@@ -5,7 +5,7 @@
             "includePath": [
                 "${workspaceFolder}/**",
                 "~/Documents/emsdk/upstream/emscripten/system/include/**",
-                "~/Documents/msgpack-c/include"
+                "${workspaceFolder}/lib/msgpack-c/include/*"
             ],
             "defines": [],
             "macFrameworkPath": [

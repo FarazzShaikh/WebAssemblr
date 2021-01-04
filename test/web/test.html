@@ -12,12 +12,10 @@
       (async function () {
         const w = await new WASMlr().init("../../../test/wasm/wasm.wasm");
 
-        console.log(
-          w.returns("number").call().addInt_object({
-            a: 1,
-            b: 9,
-          })
-        );
+        console.time("w");
+        const sum = w.returns("object").call().sendObjectToJS(8);
+        console.timeEnd("w");
+        console.log(sum);
       })();
     </script>
   </body>

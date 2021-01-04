@@ -1,3 +1,4 @@
+import { type } from "os";
 import { WASMlr, TYPES } from "../src/WebAssemblr";
 
 type GenericTestType = any;
@@ -16,7 +17,7 @@ describe("C++ Tests", () => {
       const inp: GenericTestType[] = test.inp;
 
       const actual: number = func()(...inp);
-      if (Array.isArray(expected)) {
+      if (typeof expected === "object") {
         expect(actual).toStrictEqual(expected);
         continue;
       }
@@ -128,6 +129,31 @@ describe("C++ Tests", () => {
     ];
 
     const func: Function = () => wasm.returns("number").call().addInt_object;
+    runTest(tests, func);
+  });
+
+  test("Get object from C++", (): void => {
+    interface obj {
+      firstName: string;
+      lastName: string;
+      num: number;
+      age: number;
+      arr: number[];
+    }
+    const tests: Test<obj, number>[] = [
+      {
+        exp: {
+          firstName: "Joe",
+          lastName: "Smith",
+          num: 10.678600311279297,
+          age: 4,
+          arr: [1, 2, 28, 10028],
+        },
+        inp: [],
+      },
+    ];
+
+    const func: Function = () => wasm.returns("object").call().sendObjectToJS;
     runTest(tests, func);
   });
 });
