@@ -6,7 +6,7 @@
   "types": "lib/node/src/WebAssemblr.d.ts",
   "scripts": {
     "start": "tsc && node ./lib/node/src/WebAssemblr.js",
-    "build": "tsc && tsc -p tsconfig-web.json",
+    "build": "tsc && tsc -p tsconfig-web.json && node ./utils/append-js.js",
     "build:bin": "tsc && npm i -g .",
     "test": "jest",
     "preversion": "npm test",
@@ -48,6 +48,7 @@
     "typescript": "^4.1.3"
   },
   "dependencies": {
+    "filehound": "^1.17.4",
     "yargs": "^16.2.0"
   }
 }

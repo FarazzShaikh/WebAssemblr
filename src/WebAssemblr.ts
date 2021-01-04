@@ -5,23 +5,6 @@ type t_genericObj_object = { [key: string]: {} };
 
 const WASM_CONFIG: t_genericObj_object = {
   env: {
-    DYNAMICTOP_PTR: 0,
-    STACKTOP: 0,
-    STACK_MAX: 0,
-    abort: function () {},
-    enlargeMemory: function () {},
-    getTotalMemory: function () {},
-    abortOnCannotGrowMemory: function () {},
-    ___lock: function () {},
-    ___syscall6: function () {},
-    ___setErrNo: function () {},
-    ___syscall140: function () {},
-    _emscripten_memcpy_big: function () {},
-    ___syscall54: function () {},
-    ___unlock: function () {},
-    ___syscall146: function () {},
-    emscripten_resize_heap: function () {},
-
     memory: new WebAssembly.Memory({ initial: 512 }),
   },
   wasi_snapshot_preview1: {
@@ -32,16 +15,16 @@ const WASM_CONFIG: t_genericObj_object = {
   },
 };
 
-export enum TYPES {
-  int8_t = "HEAP8",
-  uint8_t = "HEAPU8",
-  int16_t = "HEAP16",
-  uint16_t = "HEAPU16",
-  int32_t = "HEAP32",
-  uint32_t = "HEAPU32",
-  float = "HEAPF32",
-  double = "HEAPF64",
-}
+export const TYPES: Record<string, string> = {
+  int8_t: "HEAP8",
+  uint8_t: "HEAPU8",
+  int16_t: "HEAP16",
+  uint16_t: "HEAPU16",
+  int32_t: "HEAP32",
+  uint32_t: "HEAPU32",
+  float: "HEAPF32",
+  double: "HEAPF64",
+};
 
 const HEAP: { [key: string]: any } = {
   [TYPES.int8_t]: Int8Array, // int8_t
@@ -93,9 +76,6 @@ export class WASMlr {
       typeof process === "object" &&
       typeof process.versions === "object" &&
       typeof process.versions.node === "string";
-
-    let fs: t_genericObj_functions;
-    let path: t_genericObj_functions;
 
     let wasmBytes: BufferSource;
 
