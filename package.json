@@ -1,6 +1,6 @@
 {
   "name": "web-assemblr",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A dead simple way to use WebAssembly in your script.",
   "main": "lib/node/src/WebAssemblr.js",
   "types": "lib/node/src/WebAssemblr.d.ts",
