@@ -2,7 +2,6 @@ import fs from "fs";
 import path from "path";
 import chalk from "chalk";
 import gradient from "gradient-string";
-import { version } from "../package.json";
 
 enum COLORS {
 	RED = "FF9C81",
@@ -40,6 +39,8 @@ export const Print = {
 		console.log(chalk.hex(COLORS.GREEN)(message));
 	},
 	version: function (): void {
+		const rawData = fs.readFileSync(path.resolve("package.json"), "utf-8");
+		const { version } = JSON.parse(rawData);
 		console.log(`
         ${chalk.bold`WebAssemblr (WASMlr) - ${chalk.hex(COLORS.GREEN)(version)}`}
 
