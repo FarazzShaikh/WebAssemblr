@@ -1,1 +1,1 @@
-lib/web/* linguist-vendored=true
+lib/web/**/* linguist-vendored=true
