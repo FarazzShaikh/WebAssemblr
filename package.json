@@ -9,15 +9,11 @@
     "build": "./scripts/build.sh",
     "build:bin": "npm run build && npm i -g ./cli ",
     "test": "jest",
-
-
     "preversion": "npm run build",
     "version": "git add .",
     "postversion": "git push && git push --tags",
-
     "prepublishOnly": "npm test",
     "prepare": "npm run build",
-  
     "compile": "emcc -Os --no-entry ./test/cpp/* -s WASM=1 -s EXPORTED_FUNCTIONS=\"['_malloc', '_free']\" -s EXTRA_EXPORTED_RUNTIME_METHODS=\"['ccall']\" -I./lib/msgpack-c/include -o ./test/wasm/wasm.wasm"
   },
   "repository": {
