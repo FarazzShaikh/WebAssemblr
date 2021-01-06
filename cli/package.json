@@ -29,7 +29,9 @@
   "author": "Faraz Shaikh",
   "license": "MIT",
   "devDependencies": {
-    "@types/gradient-string": "^1.1.1",
+    "@types/gradient-string": "^1.1.1"
+  },
+  "dependencies": {
     "chalk": "^4.1.0",
     "gradient-string": "^1.2.0"
   }
