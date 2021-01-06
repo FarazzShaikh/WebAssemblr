@@ -10,5 +10,3 @@ then
   git clone --single-branch --branch cpp_master https://github.com/msgpack/msgpack-c.git ./lib/msgpack-c &&
   find ./lib/msgpack-c -maxdepth 1 -mindepth 1 ! -name include -exec rm -rf {} +
 fi 
-
-cd cli && npm install

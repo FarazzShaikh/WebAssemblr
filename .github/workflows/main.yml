@@ -1,7 +1,9 @@
 name: Main-WebAssemblr
 
 on:
-    [push, pull-request]:
+    push:
+        branches: [master]
+    pull-request:
         branches: [master]
 
 jobs:

@@ -4,8 +4,7 @@
   "description": "CLI to generate WebAssemblr compatible WASM binaries.",
   "main": "index.js",
   "scripts": {
-    "prepublishOnly": "cd .. && npm test",
-    "prepare": "cd .. && npm run build"
+    "build": "rollup -c"
   },
   "bin": {
     "wasmlr": "./dist/cli-bundle.js"
@@ -29,10 +28,13 @@
   "author": "Faraz Shaikh",
   "license": "MIT",
   "devDependencies": {
-    "@types/gradient-string": "^1.1.1"
+    "@types/gradient-string": "^1.1.1",
+    "rollup-plugin-terser": "^7.0.2",
+    "rollup-plugin-typescript2": "^0.29.0"
   },
   "dependencies": {
     "chalk": "^4.1.0",
-    "gradient-string": "^1.2.0"
+    "gradient-string": "^1.2.0",
+    "rollup": "^2.36.0"
   }
 }

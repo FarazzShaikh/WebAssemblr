@@ -44,18 +44,6 @@ export default [
 
 		plugins: [typescript({ tsconfig: "tsconfig.json", tsconfigOverride: ts_webOverride }), terser()],
 	},
-	// CLI
-	{
-		input: "./cli/bin/wasmlr.ts",
-		output: {
-			file: "./cli/dist/cli-bundle.js",
-			format: "cjs",
-			sourcemap: false,
-			banner: "#!/usr/bin/env node",
-		},
-		external: ["path", "child_process", "process", "fs", "chalk", "gradient-string"],
-		plugins: [typescript({ tsconfig: "tsconfig.json", tsconfigOverride: ts_CLIOverride }), terser()],
-	},
 
 	// NODE TYPES
 	{

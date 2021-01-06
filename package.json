@@ -7,7 +7,7 @@
   "scripts": {
     "postinstall": "./scripts/postinstall.sh",
     "build": "./scripts/build.sh",
-    "build:bin": "npm run build && npm i -g ./cli ",
+    "build:bin": "cd cli && npm run build && npm i -g . ",
     "test": "jest",
     "preversion": "npm run build",
     "version": "git add .",
