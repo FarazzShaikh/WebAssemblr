@@ -5,7 +5,7 @@ on:
         branches:
             - master
     pull_request:
-        branches: 
+        branches:
             - master
 
 jobs:
@@ -19,4 +19,3 @@ jobs:
             - run: npm ci
             - run: npm run build
             - run: npm test
-            - uses: mezgoodle/auto-formatter@v1.0.1
