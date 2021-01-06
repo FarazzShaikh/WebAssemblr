@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 import path from "path";
 import { exec, ExecException } from "child_process";
 import { Print } from "./utils";

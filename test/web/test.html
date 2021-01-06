@@ -7,7 +7,7 @@
 	</head>
 	<body>
 		<script type="module">
-			import { WASMlr, TYPES } from "../../lib/web/src/WebAssemblr.js";
+			import { WASMlr, TYPES } from "../../lib/web/web-bundle.js";
 
 			(async function () {
 				const wasmlr = await new WASMlr().init("../../../test/wasm/wasm.wasm");
