@@ -39,7 +39,7 @@ export const Print = {
 		console.log(chalk.hex(COLORS.GREEN)(message));
 	},
 	version: function (): void {
-		const rawData = fs.readFileSync(path.resolve("package.json"), "utf-8");
+		const rawData = fs.readFileSync(path.resolve(__dirname, "../package.json"), "utf-8");
 		const { version } = JSON.parse(rawData);
 		console.log(`
         ${chalk.bold`WebAssemblr (WASMlr) - ${chalk.hex(COLORS.GREEN)(version)}`}

@@ -1,10 +1,9 @@
 # Compile Library
 rollup -c &&
 # Copy over logo
-cp ./bin/logo.txt ./lib/node/bin/ &&
+cp ./cli/bin/logo.txt ./cli/dist/ &&
 # Delete Compiled files
 rm -rf ./lib/web/*/ &&
-rm -rf ./lib/node/bin/*/ &&
-find ./lib/node -maxdepth 1 -mindepth 1 ! -name bin -type d -exec rm -rf {} + &&
+rm -rf ./lib/node/*/ &&
 # Test WebAssemblr
 jest

@@ -15,7 +15,7 @@ const ts_webOverride = {
 };
 
 const ts_CLIOverride = {
-	include: ["bin/*"],
+	include: ["cli/bin/*"],
 	compilerOptions: {
 		declaration: false,
 	},
@@ -33,18 +33,6 @@ export default [
 
 		plugins: [typescript({ tsconfig: "tsconfig.json" }), terser()],
 	},
-	// CLI
-	{
-		input: "./bin/wasmlr.ts",
-		output: {
-			file: "./lib/node/bin/wasmlr-CLI.js",
-			format: "cjs",
-			sourcemap: false,
-			banner: "#!/usr/bin/env node",
-		},
-		external: ["path", "child_process", "process", "fs", "chalk", "gradient-string"],
-		plugins: [typescript({ tsconfig: "tsconfig.json", tsconfigOverride: ts_CLIOverride }), terser()],
-	},
 	// WEB
 	{
 		input: "./src/WebAssemblr.ts",
@@ -55,6 +43,18 @@ export default [
 		},
 
 		plugins: [typescript({ tsconfig: "tsconfig.json", tsconfigOverride: ts_webOverride }), terser()],
+	},
+	// CLI
+	{
+		input: "./cli/bin/wasmlr.ts",
+		output: {
+			file: "./cli/dist/cli-bundle.js",
+			format: "cjs",
+			sourcemap: false,
+			banner: "#!/usr/bin/env node",
+		},
+		external: ["path", "child_process", "process", "fs", "chalk", "gradient-string"],
+		plugins: [typescript({ tsconfig: "tsconfig.json", tsconfigOverride: ts_CLIOverride }), terser()],
 	},
 
 	// NODE TYPES

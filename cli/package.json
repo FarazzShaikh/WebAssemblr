@@ -1,0 +1,36 @@
+{
+  "name": "web-assemblr-cli",
+  "version": "1.0.0",
+  "description": "CLI to generate WebAssemblr compatible WASM binaries.",
+  "main": "index.js",
+  "scripts": {
+    "prepublishOnly": "cd .. && npm test",
+    "prepare": "cd .. && npm run build"
+  },
+  "bin": {
+    "wasmlr": "./dist/cli-bundle.js"
+  },
+  "files": [
+    "cli/dist/*"
+  ],
+  "bugs": {
+    "url": "https://github.com/FarazzShaikh/WebAssemblr/issues"
+  },
+  "homepage": "https://github.com/FarazzShaikh/WebAssemblr#readme",
+  "keywords": [
+    "CLI",
+    "WASM",
+    "WASMlr",
+    "WebAssembly",
+    "TypeScript",
+    "JavaScript",
+    "WebAssemblr"
+  ],
+  "author": "Faraz Shaikh",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/gradient-string": "^1.1.1",
+    "chalk": "^4.1.0",
+    "gradient-string": "^1.2.0"
+  }
+}
