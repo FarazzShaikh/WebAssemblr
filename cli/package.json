@@ -35,6 +35,7 @@
   "dependencies": {
     "chalk": "^4.1.0",
     "gradient-string": "^1.2.0",
-    "rollup": "^2.36.0"
+    "rollup": "^2.36.0",
+    "filehound": "^1.17.4"
   }
 }

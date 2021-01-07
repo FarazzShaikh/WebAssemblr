@@ -6,5 +6,5 @@ cd cli && npm install && npm run build && cd .. &&
 cp ./cli/bin/logo.txt ./cli/dist/ &&
 # Delete Compiled files
 rm -rf ./lib/web/*/ &&
-rm -rf ./lib/node/*/ &&
+rm -rf ./lib/node/*/
 
