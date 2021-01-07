@@ -1,9 +1,48 @@
+/*
+
+ __/\\\______________/\\\_____/\\\\\\\\\________/\\\\\\\\\\\____/\\\\____________/\\\\__/\\\\\\__________________        
+  _\/\\\_____________\/\\\___/\\\\\\\\\\\\\____/\\\/////////\\\_\/\\\\\\________/\\\\\\_\////\\\__________________       
+   _\/\\\_____________\/\\\__/\\\/////////\\\__\//\\\______\///__\/\\\//\\\____/\\\//\\\____\/\\\__________________      
+    _\//\\\____/\\\____/\\\__\/\\\_______\/\\\___\////\\\_________\/\\\\///\\\/\\\/_\/\\\____\/\\\_____/\\/\\\\\\\__     
+     __\//\\\__/\\\\\__/\\\___\/\\\\\\\\\\\\\\\______\////\\\______\/\\\__\///\\\/___\/\\\____\/\\\____\/\\\/////\\\_    
+      ___\//\\\/\\\/\\\/\\\____\/\\\/////////\\\_________\////\\\___\/\\\____\///_____\/\\\____\/\\\____\/\\\___\///__   
+       ____\//\\\\\\//\\\\\_____\/\\\_______\/\\\__/\\\______\//\\\__\/\\\_____________\/\\\____\/\\\____\/\\\_________  
+        _____\//\\\__\//\\\______\/\\\_______\/\\\_\///\\\\\\\\\\\/___\/\\\_____________\/\\\__/\\\\\\\\\_\/\\\_________ 
+         ______\///____\///_______\///________\///____\///////////_____\///______________\///__\/////////__\///__________
+
+                                                                        A dead simple way to use WebAssembly in your script.
+
+	Where the magic happenes.
+*/
+
 import * as msgPack from "../utils/msgPack/index";
 
-type t_genericObj_functions = { [key: string]: Function };
-type t_genericObj_object = { [key: string]: {} };
+/**
+ * WASMlr type definitions
+ */
+export namespace types {
+	export type TypedArray =
+		| Int8Array
+		| Uint8Array
+		| Int16Array
+		| Uint16Array
+		| Int32Array
+		| Uint32Array
+		| Float32Array
+		| Float64Array;
+	export type ReturnType = "string" | "number" | "object" | TypedArray;
+	export type Argument = string | number | boolean | object | TypedArray;
 
-const WASM_CONFIG: t_genericObj_object = {
+	export type Result = string | number | boolean | object | TypedArray;
+
+	type ExportedFunction = (returnType: ReturnType, ...args: Argument[]) => Result;
+	export type ExportedFunctions = Record<string, ExportedFunction>;
+}
+
+/**
+ * Config object for WebAssembly::instantiate()
+ */
+const WASM_CONFIG: Record<string, Record<string, WebAssembly.ExportValue>> = {
 	env: {
 		memory: new WebAssembly.Memory({ initial: 512 }),
 	},
@@ -15,67 +54,47 @@ const WASM_CONFIG: t_genericObj_object = {
 	},
 };
 
-export const TYPES: Record<string, string> = {
-	int8_t: "HEAP8",
-	uint8_t: "HEAPU8",
-	int16_t: "HEAP16",
-	uint16_t: "HEAPU16",
-	int32_t: "HEAP32",
-	uint32_t: "HEAPU32",
-	float: "HEAPF32",
-	double: "HEAPF64",
-};
-
-const HEAP: { [key: string]: any } = {
-	[TYPES.int8_t]: Int8Array, // int8_t
-	[TYPES.uint8_t]: Uint8Array, // uint8_t
-	[TYPES.int16_t]: Int16Array, // int16_t
-	[TYPES.uint16_t]: Uint16Array, // uint16_t
-	[TYPES.int32_t]: Int32Array, // int32_t
-	[TYPES.uint32_t]: Uint32Array, // uint32_t
-	[TYPES.float]: Float32Array, // float
-	[TYPES.double]: Float64Array, // double
-};
-
-interface i_returnType {
-	r_type: string;
-	r_type_len?: number;
-	a_type?: string;
-	p_type?: string | string[];
-}
-
-type TypedArray = ArrayLike<any> & {
-	BYTES_PER_ELEMENT: number;
-	set(array: ArrayLike<number>, offset?: number): void;
-	slice(start?: number, end?: number): TypedArray;
-};
-type TypedArrayConstructor<T> = {
-	new (): T;
-	new (size: number): T;
-	new (buffer: ArrayBuffer): T;
-	BYTES_PER_ELEMENT: number;
-};
-
+/**
+ * WebAssemblr Class
+ */
 export class WASMlr {
-	private functions: Record<string, Function>;
-	private stack_returnTypes: i_returnType[];
-
-	private memmoryBuffers: Record<string, TypedArray>;
+	/** Exported functions */
+	private functions: types.ExportedFunctions = {};
+	/** WASM Memmory Buffer as Typed Arrays */
+	private memmoryBuffers: Record<string, types.TypedArray> = {};
 
 	private malloc: Function;
 	private free: Function;
 
-	constructor() {
-		this.functions = {};
-		this.stack_returnTypes = [];
-		this.memmoryBuffers = {};
-	}
+	/** WASM Memmory Types */
+	public static TYPES: Record<string, string> = {
+		int8: "Int8Array",
+		uint8: "Uint8Array",
 
-	public async init(filepath: string) {
-		const ENV_NDOE: boolean = typeof process === "object" && typeof process.versions === "object" && typeof process.versions.node === "string";
+		int16: "Int16Array",
+		uint16: "Uint16Array",
 
+		int32: "Int32Array",
+		uint32: "Uint32Array",
+
+		float: "Float32Array",
+		double: "Float64Array",
+	};
+
+	/**
+	 * Initialize WebAssemblr instance
+	 * @param {string} filepath Path to `.wasm` file
+	 * @returns Promise resolving to the functions exported from WASM
+	 */
+	public async init(filepath: string): Promise<types.ExportedFunctions> {
+		// Find Runtime
+		const ENV_NDOE: boolean =
+			typeof process === "object" &&
+			typeof process.versions === "object" &&
+			typeof process.versions.node === "string";
+
+		// Import .wasm file as raw Byte Array
 		let wasmBytes: BufferSource;
-
 		if (ENV_NDOE) {
 			wasmBytes = require("fs").readFileSync(filepath);
 		} else {
@@ -83,79 +102,52 @@ export class WASMlr {
 			wasmBytes = await wasmFile.arrayBuffer();
 		}
 
+		// Instantiate WASM instance
 		try {
-			const instance: WebAssembly.WebAssemblyInstantiatedSource = await WebAssembly.instantiate(wasmBytes, WASM_CONFIG);
+			const instance: WebAssembly.WebAssemblyInstantiatedSource = await WebAssembly.instantiate(
+				wasmBytes,
+				WASM_CONFIG
+			);
 			this.free = instance.instance.exports.free as Function;
 			this.malloc = instance.instance.exports.malloc as Function;
 
 			const mem: WebAssembly.Memory = instance.instance.exports.memory as WebAssembly.Memory;
-			this.memmoryBuffers = {
-				[TYPES.int8_t]: new Int8Array(mem.buffer), // int8_t
-				[TYPES.uint8_t]: new Uint8Array(mem.buffer), // uint8_t
-				[TYPES.int16_t]: new Int16Array(mem.buffer), // int16_t
-				[TYPES.uint16_t]: new Uint16Array(mem.buffer), // uint16_t
-				[TYPES.int32_t]: new Int32Array(mem.buffer), // int32_t
-				[TYPES.uint32_t]: new Uint32Array(mem.buffer), // uint32_t
-				[TYPES.float]: new Float32Array(mem.buffer), // float
-				[TYPES.double]: new Float64Array(mem.buffer), // double
-			};
+
+			this.memmoryBuffers["Int8Array"] = new Int8Array(mem.buffer);
+			this.memmoryBuffers["Uint8Array"] = new Uint8Array(mem.buffer);
+			this.memmoryBuffers["Int16Array"] = new Int16Array(mem.buffer);
+			this.memmoryBuffers["Uint16Array"] = new Uint16Array(mem.buffer);
+			this.memmoryBuffers["Int32Array"] = new Int32Array(mem.buffer);
+			this.memmoryBuffers["Uint32Array"] = new Uint32Array(mem.buffer);
+			this.memmoryBuffers["Float32Array"] = new Float32Array(mem.buffer);
+			this.memmoryBuffers["Float64Array"] = new Float64Array(mem.buffer);
 
 			for (const key in instance.instance.exports) {
-				const f = instance.instance.exports[key];
-				if (typeof f === "function") this.functions[key] = (...args: any[]) => this._call(f, args);
+				const f = instance.instance.exports[key] as Function;
+				this.functions[key] = (returnType: types.ReturnType, ...args: types.Argument[]) =>
+					this._call(f, args, returnType);
 			}
 		} catch (error) {
 			throw error;
 		}
-		return this;
-	}
 
-	public returns(type: string) {
-		this.stack_returnTypes.push({
-			r_type: type,
-		});
-		return this;
-	}
-
-	public ofType(arrayType: string) {
-		const top = this.stack_returnTypes[this.stack_returnTypes.length - 1];
-		if (!top) throw "Please specify a return type to set it's buffer type.";
-		top.a_type = arrayType;
-		return this;
-	}
-
-	public andTakes(paramType: string | string[]) {
-		const top = this.stack_returnTypes[this.stack_returnTypes.length - 1];
-		if (!top) throw "Please specify a return type to set it's inputs.";
-		top.p_type = paramType;
-		return this;
-	}
-
-	public ofLength(length: number) {
-		const top = this.stack_returnTypes[this.stack_returnTypes.length - 1];
-		if (!top) throw "Please specify a return type to set it's Length.";
-		if (top.r_type !== "array") throw 'Length can only be set for return type "array".';
-		top.r_type_len = length;
-		return this;
-	}
-
-	public call(name?: string, args?: any[]) {
-		if (name && args) {
-			return this.functions[name](...args);
-		}
-		const top = this.stack_returnTypes[this.stack_returnTypes.length - 1];
-		if (!top) throw "Please specify a return type for function you want to call";
+		// Return instance.exports
 		return this.functions;
 	}
 
-	private _call(f: Function, args: any[]) {
-		let top: i_returnType | undefined = this.stack_returnTypes.pop();
+	private _call(f: Function, args: types.Argument[], returnType: types.ReturnType): types.Result {
+		if (returnType) {
+			let doesReturnArray: boolean = this._isTypedArray(returnType);
 
-		if (top) {
-			const retType: string = top.r_type;
-			const retLen: number = top.r_type_len || 1;
-			const heapType: string = top.a_type || TYPES.int8_t;
-			const paramTypes: string | string[] = top.p_type || TYPES.int8_t;
+			if (!doesReturnArray && Array.isArray(returnType)) {
+				doesReturnArray = true;
+				returnType = Int8Array.from(returnType);
+			}
+
+			const retType: string = doesReturnArray ? "array" : (returnType as string);
+			const heapType: string = doesReturnArray
+				? returnType.constructor.name
+				: WASMlr.TYPES.int8;
 
 			const params: number[] = [];
 
@@ -164,32 +156,31 @@ export class WASMlr {
 				if (typeof arg === "string") {
 					arg = new TextEncoder().encode(arg);
 				}
-				if (Array.isArray(arg)) {
+				if (this._isTypedArray(arg)) {
 					let ptr: number | null = null;
 					try {
-						const p_heapType = Array.isArray(paramTypes) ? paramTypes[i] : paramTypes;
-
-						const typedArgs: TypedArray = HEAP[p_heapType].from(arg);
+						const typedArgs: types.TypedArray = arg;
 						const argLen: number = typedArgs.length;
+						const p_heapType: string = typedArgs.constructor.name;
 
 						ptr = this.malloc(typedArgs.length * typedArgs.BYTES_PER_ELEMENT);
 						const mem = this.memmoryBuffers[p_heapType];
 
 						if (ptr) {
 							switch (p_heapType) {
-								case TYPES.int8_t:
-								case TYPES.uint8_t:
+								case WASMlr.TYPES.int8:
+								case WASMlr.TYPES.uint8:
 									mem.set(typedArgs, ptr);
-								case TYPES.int16_t:
-								case TYPES.uint16_t:
+								case WASMlr.TYPES.int16:
+								case WASMlr.TYPES.uint16:
 									mem.set(typedArgs, ptr >> 1);
 									break;
-								case TYPES.int32_t:
-								case TYPES.uint32_t:
-								case TYPES.float:
+								case WASMlr.TYPES.int32:
+								case WASMlr.TYPES.uint32:
+								case WASMlr.TYPES.float:
 									mem.set(typedArgs, ptr >> 2);
 									break;
-								case TYPES.double:
+								case WASMlr.TYPES.double:
 									mem.set(typedArgs, ptr >> 3);
 									break;
 							}
@@ -206,44 +197,53 @@ export class WASMlr {
 					}
 				} else if (typeof arg === "object") {
 					const packed = msgPack.encode(arg);
-					var ptr = this.malloc(packed.length);
-					var bytes_per_element = packed.BYTES_PER_ELEMENT;
-					this.memmoryBuffers[TYPES.int8_t].set(packed, ptr / bytes_per_element);
+					const ptr = this.malloc(packed.length);
+					const bytes_per_element = packed.BYTES_PER_ELEMENT;
+					this.memmoryBuffers[WASMlr.TYPES.int8].set(packed, ptr / bytes_per_element);
 
 					params.push(ptr);
 					params.push(packed.length);
+
+					//this.free(ptr);
 				} else if (typeof arg === "number") {
 					params.push(arg);
 				}
 			}
 
-			if (retType === "string") {
+			if (this._isTypedArray(returnType)) {
+				const ptr = f(...params);
+				this._decodeArray(heapType, ptr, returnType);
+				return returnType;
+			} else if (retType === "string") {
 				const ptr = f(...params);
 				return this._decodeUTF8String(heapType, ptr);
-			} else if (retType === "array") {
-				const ptr = f(...params);
-				return this._decodeArray(heapType, ptr, retLen);
 			} else if (retType === "object") {
 				const addressPtr = f(...params);
 
-				const addressData = new Uint8Array(this.memmoryBuffers[heapType].slice(addressPtr, addressPtr + (addressPtr >> 2)));
+				const addressData = new Uint8Array(
+					this.memmoryBuffers[heapType].slice(addressPtr, addressPtr + (addressPtr >> 2))
+				);
 
 				this.free(addressPtr);
 				return msgPack.decode(addressData);
 			}
+
 			return f(...params);
 		} else {
 			throw "Return Type not defined";
 		}
 	}
 
-	private _decodeArray(heapType: string, ptr: number, length?: number): any[] {
+	private _isTypedArray(array: types.Argument): array is types.TypedArray {
+		return (<types.TypedArray>array).BYTES_PER_ELEMENT !== undefined;
+	}
+
+	private _decodeArray(heapType: string, ptr: number, copyto: types.TypedArray): void {
 		const mem = this.memmoryBuffers[heapType];
-		let arr = [];
+		const length = copyto.length;
 		for (let i = 0; i < (length || 1); i++) {
-			arr.push(mem[ptr / mem.BYTES_PER_ELEMENT + i]);
+			copyto[i] = mem[ptr / mem.BYTES_PER_ELEMENT + i];
 		}
-		return arr;
 	}
 
 	private _decodeUTF8String(heapType: string, ptr: number): string {

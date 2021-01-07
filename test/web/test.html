@@ -7,11 +7,12 @@
 	</head>
 	<body>
 		<script type="module">
-			import { WASMlr, TYPES } from "../../lib/web/web-bundle.js";
+			import { WASMlr } from "../../lib/web/web-bundle.js";
 
 			(async function () {
 				const wasmlr = await new WASMlr().init("../../../test/wasm/wasm.wasm");
-				const sum = wasmlr.returns("number").andTakes(TYPES.int32_t).call().sumArray([1, 2, 3]);
+				const arr = Int32Array.from([1, 2, 3]);
+				const sum = wasmlr.sumArray("number", arr);
 
 				console.log(sum);
 			})();

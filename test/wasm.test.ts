@@ -1,19 +1,20 @@
-import { type } from "os";
-import { WASMlr, TYPES } from "../lib/node/node-bundle.js";
-
-type GenericTestType = any;
+import { WASMlr, types } from "../lib/node/node-bundle.js";
 
 type Test<E, I> = { exp: E; inp: I[] };
 
 describe("C++ Tests", () => {
-	let wasm: WASMlr;
+	let wasm: types.ExportedFunctions;
 
-	const runTest = function (tests: Test<GenericTestType, GenericTestType>[], func: Function) {
+	const runTest = function (
+		tests: Test<types.Result, types.Argument>[],
+		retType: types.ReturnType,
+		func: Function
+	) {
 		for (const test of tests) {
-			const expected: GenericTestType = test.exp;
-			const inp: GenericTestType[] = test.inp;
+			const expected: any = test.exp;
+			const inp: any[] = test.inp;
 
-			const actual: number = func()(...inp);
+			const actual: types.ReturnType = func(retType, ...inp);
 			if (typeof expected === "object") {
 				expect(actual).toStrictEqual(expected);
 				continue;
@@ -42,8 +43,9 @@ describe("C++ Tests", () => {
 			{ exp: 1307674368000, inp: [15] },
 		];
 
-		const func: Function = () => wasm.returns("number").call().factorial;
-		runTest(tests, func);
+		const retType: types.ReturnType = "number";
+		const func: Function = wasm.factorial;
+		runTest(tests, retType, func);
 	});
 
 	test("Add ints", (): void => {
@@ -55,8 +57,9 @@ describe("C++ Tests", () => {
 			{ exp: 1, inp: [0, 1] },
 		];
 
-		const func: Function = () => wasm.returns("number").call().addInt;
-		runTest(tests, func);
+		const retType: types.ReturnType = "number";
+		const func: Function = wasm.addInt;
+		runTest(tests, retType, func);
 	});
 
 	test("Multiply ints", (): void => {
@@ -69,31 +72,32 @@ describe("C++ Tests", () => {
 			{ exp: 0, inp: [0, 1] },
 		];
 
-		const func: Function = () => wasm.returns("number").call().multiplyInt;
-		runTest(tests, func);
+		const retType: types.ReturnType = "number";
+		const func: Function = wasm.multiplyInt;
+		runTest(tests, retType, func);
 	});
 
 	test("Double ints", (): void => {
-		const tests: Test<number[], number[]>[] = [
-			{ exp: [0, 0], inp: [[0, 0]] },
-			{ exp: [2, 4], inp: [[1, 2]] },
+		const tests: Test<Float32Array, Float32Array>[] = [
+			{ exp: Float32Array.from([0, 0]), inp: [Float32Array.from([0, 0])] },
+			{ exp: Float32Array.from([2, 4]), inp: [Float32Array.from([1, 2])] },
 		];
 
-		let out_bufferLength: number = 2;
-
-		const func: Function = () => wasm.returns("array").ofLength(out_bufferLength).call().doubleArray;
-		runTest(tests, func);
+		const retType: types.ReturnType = new Float32Array(2);
+		const func: Function = wasm.doubleArray;
+		runTest(tests, retType, func);
 	});
 
 	test("Sum Array", (): void => {
-		const tests: Test<number, number[]>[] = [
-			{ exp: 0, inp: [[0, 0]] },
-			{ exp: 3, inp: [[1, 2]] },
-			{ exp: 145, inp: [[1, 2, 3, 64, 75]] },
+		const tests: Test<number, Int32Array>[] = [
+			{ exp: 0, inp: [Int32Array.from([0, 0])] },
+			{ exp: 3, inp: [Int32Array.from([1, 2])] },
+			{ exp: 145, inp: [Int32Array.from([1, 2, 3, 64, 75])] },
 		];
 
-		const func: Function = () => wasm.returns("number").andTakes(TYPES.int32_t).call().sumArray;
-		runTest(tests, func);
+		const retType: types.ReturnType = "number";
+		const func: Function = wasm.sumArray;
+		runTest(tests, retType, func);
 	});
 
 	test("Modular Exponentiation", (): void => {
@@ -105,8 +109,9 @@ describe("C++ Tests", () => {
 			{ exp: 49, inp: [1234, 1000, 69] },
 		];
 
-		const func: Function = () => wasm.returns("number").call().modularExponentiation;
-		runTest(tests, func);
+		const retType: types.ReturnType = "number";
+		const func: Function = wasm.modularExponentiation;
+		runTest(tests, retType, func);
 	});
 
 	test("Sum ints from object", (): void => {
@@ -122,8 +127,9 @@ describe("C++ Tests", () => {
 			{ exp: 1, inp: [{ a: 0, b: 1 }] },
 		];
 
-		const func: Function = () => wasm.returns("number").call().addInt_object;
-		runTest(tests, func);
+		const retType: types.ReturnType = "number";
+		const func: Function = wasm.addInt_object;
+		runTest(tests, retType, func);
 	});
 
 	test("Get object from C++", (): void => {
@@ -147,7 +153,8 @@ describe("C++ Tests", () => {
 			},
 		];
 
-		const func: Function = () => wasm.returns("object").call().sendObjectToJS;
-		runTest(tests, func);
+		const retType: types.ReturnType = "object";
+		const func: Function = wasm.sendObjectToJS;
+		runTest(tests, retType, func);
 	});
 });
