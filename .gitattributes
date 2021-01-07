@@ -1,3 +1,2 @@
 lib/web/* linguist-vendored=true
-rollup.config.js linguist-vendored=true
-jest.config.js linguist-vendored=true
+
